@@ -45,6 +45,11 @@
     border-radius: 5px;
 }
 
+.fieldsets {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+}
 
 .closeButton {
     cursor: pointer;
