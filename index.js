@@ -34,10 +34,27 @@ document.addEventListener("click", function(e) {
         const orderNumber = parseInt(form.getElementsByClassName("beverage-count")[0].innerHTML.split('№')[1]);
         form.remove();
 
-        // Обновляем номера заказов после удаления заказа
         updateOrderNumbers();
     }
 });
+
+function CreateCrossForReadyForm(form) {
+    if (!form.querySelector(".cross-button")) {
+        let cross = document.createElement("button");
+        cross.textContent = "X";
+        cross.style.float = "right";
+        cross.className = "cross-button";
+        cross.addEventListener("click", function(e) {
+            form.style.display = "none";
+            document.querySelector(".overlay").style.display = "none";
+        });
+        form.prepend(cross);
+    } else {
+        form.style.display = "block";
+        document.querySelector(".overlay").style.display = "block";
+    }
+}
+
 
 function CreateOrderReadyModalWindow() {
     let overlay = document.createElement("div");
@@ -72,6 +89,7 @@ function CreateOrderReadyModalWindow() {
 
 function ShowModalWindow(modalWindow) {
     let submitButton = document.querySelector(".submit-button");
+    modalWindow.innerHTML = "Заказ принят! \nВы заказали " + drinksNumber(countOrders);
 
     submitButton.addEventListener("click", function(e) {
         e.preventDefault();
@@ -80,14 +98,27 @@ function ShowModalWindow(modalWindow) {
     });
 }
 
+function drinksNumber(drinks) {
+    let number = " напитков";
+    if (drinks % 10 == 1 && drinks != 11) {
+        number = " напиток";
+    }
+    else if (drinks % 10 >= 2 && drinks % 10 <= 4 && (drinks < 12 || drinks > 14)) {
+        number = " напитка";
+    }
+    return drinks + number;
+}
+
 let form = document.querySelector(".beverage");
 CreateCross(form);
 
 let modalWindow = CreateOrderReadyModalWindow();
 ShowModalWindow(modalWindow);
+CreateCrossForReadyForm(modalWindow);
 
 document.querySelector("form").addEventListener("submit", function(e) {
     e.preventDefault();
 });
 
 document.getElementsByClassName("add-button")[0].addEventListener("click", addNewOrder);
+
