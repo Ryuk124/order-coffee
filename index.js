@@ -8,7 +8,6 @@ function addNewOrder(){
     newOrder.getElementsByClassName("beverage-count")[0].innerHTML = `Напиток №${countOrders}`;
     oldOrder.after(newOrder);
 
-    // Обновляем номера заказов после добавления нового заказа
     updateOrderNumbers();
 }
 
@@ -89,32 +88,33 @@ function CreateOrderReadyModalWindow() {
 
 function ShowModalWindow(modalWindow) {
     let submitButton = document.querySelector(".submit-button");
-    modalWindow.innerHTML = "Заказ принят! \nВы заказали " + drinksNumber(countOrders);
 
     submitButton.addEventListener("click", function(e) {
         e.preventDefault();
         modalWindow.style.display = "block";
+        modalWindow.textContent = "Заказ принят! \nВы заказали " + drinksNumber();
+        CreateCrossForReadyForm(modalWindow);
         document.querySelector(".overlay").style.display = "block";
     });
 }
 
-function drinksNumber(drinks) {
+
+function drinksNumber() {
     let number = " напитков";
-    if (drinks % 10 == 1 && drinks != 11) {
+    if (countOrders === 1) {
         number = " напиток";
-    }
-    else if (drinks % 10 >= 2 && drinks % 10 <= 4 && (drinks < 12 || drinks > 14)) {
+    } else if (countOrders % 10 === 2 || countOrders % 10 === 3 || countOrders % 10 === 4) {
         number = " напитка";
     }
-    return drinks + number;
+    return countOrders + number;
 }
+
 
 let form = document.querySelector(".beverage");
 CreateCross(form);
 
 let modalWindow = CreateOrderReadyModalWindow();
 ShowModalWindow(modalWindow);
-CreateCrossForReadyForm(modalWindow);
 
 document.querySelector("form").addEventListener("submit", function(e) {
     e.preventDefault();
