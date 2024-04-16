@@ -1,132 +1,102 @@
-let countOrders = 1;
+let fieldsCount = 1;
+let fieldsets = [document.getElementsByTagName("fieldset")[0]];
+let div = document.getElementsByClassName("fieldsets")[0];
 
-function addNewOrder(){
-    countOrders++;
-    let allOrders = document.getElementsByClassName("beverage");
-    let oldOrder = allOrders[allOrders.length - 1];
-    let newOrder = oldOrder.cloneNode(true);
-    newOrder.getElementsByClassName("beverage-count")[0].innerHTML = `Напиток №${countOrders}`;
-    oldOrder.after(newOrder);
-
-    updateOrderNumbers();
+cloneText = (textarea, parent) => {
+    parent.getElementsByClassName("comment")[0].innerHTML = textarea.value.replace(/(срочно)|(быстрее)|(побыстрее)|(скорее)|(поскорее)|(очень нужно)/gi, "<b>$&</b>");
 }
 
-function CreateCross(form) {
-    let cross = document.createElement("button");
-    cross.textContent = "X";
-    cross.style.float = "right";
-    cross.className = "cross-button";
-    form.prepend(cross);
-    return cross;
-}
-
-function updateOrderNumbers() {
-    const allOrders = document.getElementsByClassName("beverage");
-    for (let i = 0; i < allOrders.length; i++) {
-        allOrders[i].getElementsByClassName("beverage-count")[0].innerHTML = `Напиток №${i+1}`;
+function createNewFieldSet() {
+    let newFieldset = document.createElement("fieldset");
+    newFieldset.setAttribute("class", "beverage");
+    newFieldset.innerHTML = fieldsets[0].innerHTML;
+    for (let input of newFieldset.getElementsByTagName("input")) {
+        if (input.getAttribute("type") === "radio") {
+            input.setAttribute("name", `milk${fieldsCount + 1}`);
+        }
     }
+    let id = fieldsCount++;
+    newFieldset.getElementsByClassName("closeButton")[0].addEventListener("click", () => deleteFieldSet(newFieldset));
+    newFieldset.getElementsByTagName("h4")[0].innerText = `Напиток №${id + 1}`;
+    newFieldset.getElementsByClassName("comment")[0].innerHTML="";
+    fieldsets.push(newFieldset);
+    div.appendChild(newFieldset)
+    console.log(fieldsCount);
 }
 
-document.addEventListener("click", function(e) {
-    if (e.target.classList.contains("cross-button")) {
-        let form = e.target.parentNode;
-        const orderNumber = parseInt(form.getElementsByClassName("beverage-count")[0].innerHTML.split('№')[1]);
-        form.remove();
-
-        updateOrderNumbers();
+function deleteFieldSet(element) {
+    if (fieldsCount === 1) {
+        return;
     }
-});
+    let index = Number(element.getElementsByTagName("h4")[0].innerText.split(' ')[1].slice(1)) - 1;
+    div.removeChild(fieldsets[index]);
+    for (let i = index; i < fieldsets.length - 1; i++) {
+        fieldsets[i] = fieldsets[i + 1];
+    }
+    for (let i = index; i < fieldsets.length - 1; i++) {
+        fieldsets[i].getElementsByTagName("h4")[0].innerHTML = `Напиток №${i + 1}`;
+    }
+    fieldsets.pop();
+    fieldsCount--;
+}
 
-function CreateCrossForReadyForm(form) {
-    if (!form.querySelector(".cross-button")) {
-        let cross = document.createElement("button");
-        cross.textContent = "X";
-        cross.style.float = "right";
-        cross.className = "cross-button";
-        cross.addEventListener("click", function(e) {
-            form.style.display = "none";
-            document.querySelector(".overlay").style.display = "none";
+function getPadezh(i) {
+    let mod = i % 100;
+    if (mod % 10 >= 5 || mod % 10 === 0) {
+        return "напитков";
+    }
+    if (Math.trunc(i / 10) === 1) {
+        return "напитков";
+    }
+    if (mod % 10 > 1 && mod % 10 <= 4) {
+        return "напитка";
+    }
+    return "напиток";
+}
+
+function callModalWindow() {
+    document.getElementById("modalWindowText").innerText = `Вы заказали ${fieldsCount} ${getPadezh(fieldsCount)}`;
+    document.getElementsByClassName("overlay")[0].style.setProperty("display", "flex");
+    let tbody = document.getElementsByClassName("overlay")[0].getElementsByTagName("tbody")[0];
+    tbody.innerHTML = "";
+    const toRussian = {"usual": "обычное", "no-fat": "обезжиренное", "soy": "соевое", "coconut": "кокосовое"};
+    for (let fieldset of fieldsets) {
+        let tr = document.createElement("tr");
+        let td1 = document.createElement("td");
+        td1.innerText = fieldset.getElementsByTagName("select")[0].selectedOptions[0].textContent;
+        let td2 = document.createElement("td");
+        fieldset.querySelectorAll('input[type="radio"]').forEach((x) => {
+            if (x.checked) {
+                td2.innerText = toRussian[x.value];
+            }
         });
-        form.prepend(cross);
-    } else {
-        form.style.display = "block";
-        document.querySelector(".overlay").style.display = "block";
+        let td3 = document.createElement("td");
+        fieldset.querySelectorAll('input[type="checkbox"]').forEach((x) => {
+            if (x.checked) {
+                if (td3.innerText.length !== 0) {
+                    td3.innerText += ", ";
+                }
+                td3.innerText += x.parentElement.querySelector('span').textContent;
+            }
+        });
+
+        let td4 = document.createElement("td");
+        td4.innerText = fieldset.getElementsByClassName("comment")[0].textContent;
+
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tr.appendChild(td3);
+        tr.appendChild(td4);
+        tbody.appendChild(tr);
     }
 }
 
-
-function CreateOrderReadyModalWindow() {
-    let overlay = document.createElement("div");
-    overlay.className = "overlay";
-    overlay.style.display = "none";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.position = "fixed";
-    overlay.style.zIndex = 1;
-    overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-
-    let modalWindow = document.createElement("div");
-    modalWindow.id = "modalWindow";
-    modalWindow.style.display = "none";
-    modalWindow.style.backgroundColor = "darkgreen";
-    modalWindow.style.position = "fixed";
-    modalWindow.style.transform = "translate(-50%, -50%)";
-    modalWindow.style.top = "50%";
-    modalWindow.style.left = "50%";
-    modalWindow.style.width = "500px";
-    modalWindow.style.padding = "10px";
-    modalWindow.textContent = "Заказ принят!";
-    modalWindow.style.textAlign = "center";
-
-    document.body.prepend(overlay);
-    overlay.appendChild(modalWindow);
-
-    return modalWindow;
+function removeModalWindow() {
+    document.getElementsByClassName("overlay")[0].style.setProperty("display", "none");
 }
 
-function ShowModalWindow(modalWindow) {
-    let submitButton = document.querySelector(".submit-button");
-
-    submitButton.addEventListener("click", function(e) {
-        e.preventDefault();
-        modalWindow.style.display = "block";
-        modalWindow.textContent = "Заказ принят! \nВы заказали " + drinksNumber();
-        CreateCrossForReadyForm(modalWindow);
-        document.querySelector(".overlay").style.display = "block";
-    });
-}
-
-
-function drinksNumber() {
-    let number = " напитков";
-    if (countOrders === 1) {
-        number = " напиток";
-    } else if (countOrders % 10 === 2 || countOrders % 10 === 3 || countOrders % 10 === 4) {
-        number = " напитка";
-    }
-    return countOrders + number;
-}
-
-
-let form = document.querySelector(".beverage");
-CreateCross(form);
-
-let modalWindow = CreateOrderReadyModalWindow();
-ShowModalWindow(modalWindow);
-
-document.querySelector("form").addEventListener("submit", function(e) {
-    e.preventDefault();
-});
-
-document.getElementsByClassName("add-button")[0].addEventListener("click", addNewOrder);
-
-document.addEventListener("input", function(e) {
-    if (e.target.tagName === "TEXTAREA") {
-        let userInput = e.target.value;
-        let userText = document.querySelector(".user-input-text");
-
-        userText.innerHTML = userInput.replace(/(срочно|быстрее|побыстрее|скорее|поскорее|очень нужно)/gi, '<b>$1</b>');
-    }
-});
+document.getElementById("modalWindowCloseButton" + "").addEventListener("click", () => removeModalWindow());
+document.getElementsByClassName("overlay")[0].style.setProperty("display", "none");
+document.getElementsByClassName("closeButton")[0].addEventListener("click", () => deleteFieldSet(fieldsets[0]));
+document.getElementsByClassName("add-button")[0].addEventListener("click", () => createNewFieldSet());
+document.getElementsByClassName("submit-button")[0].addEventListener("click", () => callModalWindow());
